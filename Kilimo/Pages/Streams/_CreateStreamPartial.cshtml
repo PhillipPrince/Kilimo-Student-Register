@@ -1,0 +1,68 @@
+﻿@model Kilimo.Models.ClassStream
+
+<div class="form-container">
+    <form id="createStreamForm">
+        <div class="form-group">
+            <label asp-for="StreamName">Stream Name</label>
+            <input asp-for="StreamName" class="form-control" />
+            <span asp-validation-for="StreamName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Description</label>
+            <input asp-for="Description" class="form-control" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+
+@section Scripts {
+    <!-- Include jQuery if it's not already included -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#createStreamForm').on('submit', function (event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: '@Url.Action("CreateClassStream", "Streams")',
+                    type: 'POST',
+                    data: $(this).serialize(), // Serialize form data
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Class stream created successfully.',
+                            }).then(() => {
+                                $('#createStreamModal').modal('hide');
+                                // Refresh the stream list if needed
+                                $('#streamsList').load('@Url.Action("GetClassStreams", "Streams")');
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Error creating class stream.',
+                                footer: response.errors.length ? '<ul>' + response.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>' : ''
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Error making AJAX request.',
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

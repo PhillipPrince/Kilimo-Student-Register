@@ -1,0 +1,86 @@
+﻿@page
+@model Kilimo.Models.ClassStream
+@{
+    ViewData["Title"] = "Class Streams";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<!-- Button to open the modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStreamModal">
+    Create New Stream
+</button>
+
+<div class="card-body">
+    <hr />
+    <div id="streamsList">
+        <!-- The class streams will be populated here by JavaScript -->
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createStreamModal" tabindex="-1" aria-labelledby="createStreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createStreamModalLabel">Create New Class Stream</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @await Html.PartialAsync("_CreateStreamPartial", new Kilimo.Models.ClassStream())
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#createStreamForm').on('submit', function (event) {
+                event.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("CreateClassStream", "Streams")',
+                    type: 'POST',
+                    data: $(this).serialize(), // Serialize form data
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Class stream created successfully.');
+                            $('#createStreamModal').modal('hide');
+                            loadStreams(); // Refresh the stream list
+                        } else {
+                            alert('Error creating class stream.');
+                            // Display validation errors if any
+                            console.log(response.errors);
+                        }
+                    },
+                    error: function () {
+                        alert('Error making AJAX request.');
+                    }
+                });
+            });
+
+        
+
+            loadStreams();
+        });
+        function loadStreams() {
+            $.ajax({
+                url: '@Url.Action("GetClassStreams", "Streams")',
+                type: 'GET',
+                success: function (html) {
+                    alert(Reached);
+                    $('#streamsList').html(html); // Inject the HTML content into the streamsList div
+                },
+                error: function () {
+                    $('#streamsList').html('<p>Error loading streams.</p>');
+                }
+            });
+        }
+
+    </script>
+}

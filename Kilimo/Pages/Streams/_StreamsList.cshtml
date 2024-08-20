@@ -1,0 +1,99 @@
+﻿@model IEnumerable<Kilimo.Models.ClassStream>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Stream Name</th>
+                <th>Description</th>
+                <th>Actions</th> 
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var stream in Model)
+            {
+                <tr>
+                    <td>@stream.StreamName</td>
+                    <td>@stream.Description</td>
+                    <td>
+                        <!-- Button to view details of the class stream -->
+                        <button type="button" class="btn btn-info btn-sm" onclick="viewClassStream(@stream.StreamId)">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No streams available.</p>
+}
+<!-- Modal for viewing class stream details -->
+<div class="modal fade" id="viewStreamModal" tabindex="-1" aria-labelledby="viewStreamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewStreamModalLabel">Class Stream Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="viewStreamDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewClassStream(id) {
+            $.ajax({
+                url: '@Url.Action("GetClassStream", "Streams")',
+                type: 'GET',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        $('#viewStreamDetails').html(response);
+                        $('#viewStreamModal').modal('show');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.message || 'Error retrieving class stream details.',
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Error making AJAX request.',
+                    });
+                }
+            });
+        }
+        function viewClassStream(id) {
+            $.ajax({
+                url: '@Url.Action("GetClassStream", "Streams")',
+                type: 'GET',
+                data: { id: id },
+                success: function (response) {
+                    $('#viewStreamDetails').html(response); 
+                    $('#viewStreamModal').modal('show'); 
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Error making AJAX request.',
+                    });
+                }
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,100 @@
+﻿@page
+@model Kilimo.Pages.Students.StudentsModel
+@{
+    ViewData["Title"] = "Students";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<!-- Button to open the modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStudentModal">
+    Add New Student
+</button>
+
+<div class="card-body">
+    <hr />
+    <div id="studentsList">
+        <!-- The students will be populated here by JavaScript -->
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createStudentModal" tabindex="-1" aria-labelledby="createStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createStudentModalLabel">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @await Html.PartialAsync("_CreateStudentPartial", new Kilimo.Models.StudentViewModel())
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#createStudentForm').on('submit', function (event) {
+                event.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("CreateStudent", "Students")',
+                    type: 'POST',
+                    data: $(this).serialize(), // Serialize form data
+                    success: function (response) {
+                        if (response.success) {
+                            swal('Success', 'Student added successfully.', 'success');
+                            $('#createStudentModal').modal('hide');
+                            loadStudents(); // Refresh the student list
+                        } else {
+                            swal('Error', 'Error adding student.', 'error');
+                            // Display validation errors if any
+                            console.log(response.errors);
+                        }
+                    },
+                    error: function () {
+                        swal('Error', 'Error making AJAX request.', 'error');
+                    }
+                });
+            });
+
+            // Function to fetch and display students
+            function loadStudents() {
+                $.ajax({
+                    url: '@Url.Action("GetStudents", "Students")',
+                    type: 'GET',
+                    success: function (data) {
+                        var studentsList = $('#studentsList');
+                        studentsList.empty();
+                        if (data.length > 0) {
+                            var table = $('<table class="table"><thead><tr><th>Student Name</th><th>Student ID</th><th>Class Stream</th></tr></thead><tbody></tbody></table>');
+                            $.each(data, function (index, student) {
+                                var row = $('<tr></tr>');
+                                row.append('<td>' + student.studentName + '</td>');
+                                row.append('<td>' + student.studentId + '</td>');
+                                row.append('<td>' + student.classStreamName + '</td>'); // Assuming classStreamName is included in the response
+                                table.find('tbody').append(row);
+                            });
+                            studentsList.append(table);
+                        } else {
+                            studentsList.append('<p>No students available.</p>');
+                        }
+                    },
+                    error: function () {
+                        $('#studentsList').append('<p>Error loading students.</p>');
+                    }
+                });
+            }
+
+            // Load students when the page is ready
+            loadStudents();
+        });
+
+    </script>
+}

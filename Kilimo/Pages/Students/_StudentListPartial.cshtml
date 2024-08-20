@@ -1,0 +1,119 @@
+﻿@model IEnumerable<Kilimo.Models.Student>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Student ID</th>
+                <th>Class Stream</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Model)
+            {
+                <tr>
+                    <td>@student.StudentName</td>
+                    <td>@student.StudentId</td>
+                    <td>@student.ClassStreamId</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewStudent('@student.StudentId')">View</button>
+
+                        <button class="btn btn-warning btn-sm" onclick="editStudent('@student.StudentId')">Edit</button>
+
+                        <button class="btn btn-danger btn-sm" onclick="deleteStudent('@student.StudentId')">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No students available.</p>
+}
+
+@section Scripts {
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Include SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function viewStudent(studentId) {
+            $.ajax({
+                url: '@Url.Action("GetStudent", "Students")',
+                type: 'GET',
+                data: { id: studentId },
+                success: function (data) {
+                    // Display student details in a modal or alert
+                    Swal.fire({
+                        title: 'Student Details',
+                        html: `
+                            <p><strong>Name:</strong> ${data.StudentName}</p>
+                            <p><strong>ID:</strong> ${data.StudentId}</p>
+                            <p><strong>Class Stream:</strong> ${data.ClassStreamName}</p>
+                        `,
+                        icon: 'info'
+                    });
+                },
+                error: function () {
+                    Swal.fire('Error', 'Error fetching student data.', 'error');
+                }
+            });
+        }
+
+        function editStudent(studentId) {
+            $.ajax({
+                url: '@Url.Action("GetStudent", "Students")',
+                type: 'GET',
+                data: { id: studentId },
+                success: function (data) {
+                    // Populate and show the edit modal
+                    $('#editStudentModal').find('input[name="StudentName"]').val(data.StudentName);
+                    $('#editStudentModal').find('input[name="StudentId"]').val(data.StudentId);
+                    $('#editStudentModal').find('select[name="ClassStreamId"]').val(data.ClassStreamId);
+                    $('#editStudentModal').modal('show');
+                },
+                error: function () {
+                    Swal.fire('Error', 'Error fetching student data for edit.', 'error');
+                }
+            });
+        }
+
+        function deleteStudent(studentId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteStudent", "Students")',
+                        type: 'POST',
+                        data: { id: studentId },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Deleted!', 'Student has been deleted.', 'success');
+                                location.reload(); // Refresh the page to update the list
+                            } else {
+                                Swal.fire('Error', 'Error deleting student.', 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Error making AJAX request.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

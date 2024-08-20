@@ -1,0 +1,109 @@
+﻿@model Kilimo.Models.StudentViewModel
+
+<div class="form-container">
+    <form id="createStudentForm" method="post">
+        <div class="form-group">
+            <label asp-for="StudentName">Student Name</label>
+            <input asp-for="StudentName" class="form-control" />
+            <span asp-validation-for="StudentName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="StudentId">Student ID</label>
+            <input asp-for="StudentId" class="form-control" />
+            <span asp-validation-for="StudentId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ClassStreamId">Class Stream</label>
+            <select asp-for="ClassStreamId" class="form-control" id="classStreamSelect">
+                <option value="">Select Class Stream</option>
+                @foreach (var stream in Model.ClassStreams)
+                {
+                    <option value="@stream.StreamId">@stream.StreamName</option>
+                }
+            </select>
+            <span asp-validation-for="ClassStreamId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+
+@section Scripts {
+    <!-- Include jQuery and SweetAlert2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Handle form submission
+            $('#createStudentForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("CreateStudent", "Students")',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Student Created',
+                                text: 'The student has been successfully created.'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'There was an error creating the student. Please try again.'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while processing the request.'
+                        });
+                    }
+                });
+            });
+
+            // Load class streams if the dropdown is empty
+            if ($('#classStreamSelect').children('option').length === 1) {
+                loadClassStreams();
+            }
+        });
+
+        function loadClassStreams() {
+            $.ajax({
+                url: '@Url.Action("GetClassStreams", "Streams")',
+                type: 'GET',
+                success: function (data) {
+                    var select = $('#classStreamSelect');
+                    select.empty(); // Clear existing options
+                    select.append('<option value="">Select Class Stream</option>'); // Add default option
+
+                    if (data.length > 0) {
+                        $.each(data, function (index, stream) {
+                            var option = $('<option></option>').val(stream.StreamId).text(stream.StreamName);
+                            select.append(option);
+                        });
+                    } else {
+                        select.append('<option value="">No streams available</option>');
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error loading class streams.'
+                    });
+                }
+            });
+        }
+    </script>
+}

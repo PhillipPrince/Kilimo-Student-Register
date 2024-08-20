@@ -1,0 +1,29 @@
+﻿@model Kilimo.Models.ClassStream
+
+@{
+    // This partial view is used to create a new class stream
+}
+
+<div class="form-container">
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label asp-for="StreamName">Stream Name</label>
+            <input asp-for="StreamName" class="form-control" />
+            <span asp-validation-for="StreamName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Description</label>
+            <input asp-for="Description" class="form-control" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
